@@ -3,14 +3,88 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 
 namespace Dev_Test_Nov_2021
 {
-    //Write your name here
+    //Jacob
+
+    public class apiObject
+    {
+        public string name { get; set; }
+        public int age { get; set; }
+        public int count { get; set; }
+    }
+
     class Program
     {
-        static void Main(string[] args)
+        static HttpClient client = new HttpClient();
+
+        
+        static async Task getName(string path)
         {
+            string s = null;
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync(path);
+                if (response.IsSuccessStatusCode)
+                {
+                    s = await response.Content.ReadAsStringAsync();
+                }
+                JObject o = JObject.Parse(s);
+                Console.WriteLine("Name: " + o.Property("name").Value
+                                + "Age: " + o.Property("age").Value
+                                + "Count: " + o.Property("count").Value);
+            }
+            catch(HttpRequestException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return;
+        }
+        
+
+        public class Order
+        {
+            public int id { get; set; }
+            public double value { get; set; }
+            public string customer { get; set; }
+        }
+
+        public static void sortedList(List<Order> list)
+        {
+            List<Order> SortedList = list.OrderBy(o => o.value).ToList();
+            foreach(Order o in SortedList)
+            {
+                Console.WriteLine(o.id + "    " + o.value + "    " + "    " + o.customer);
+            }
+        }
+
+        public async static Task Main(string[] args)
+        {
+            //Part 1
+            /*
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync("https://api.agify.io/?name=jacob");
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseBody);
+            }
+            catch(HttpRequestException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            */
+            await getName("https://api.agify.io/?name=jacob");
+
+
+
+
+
             //Part 2
             List<Product> products = new List<Product> {
                 new Product {Id = "B091NE9K3", Price =59.96, Quantity = 5},
@@ -25,10 +99,46 @@ namespace Dev_Test_Nov_2021
                 new Product {Id = "B091NEGU5", Price =12.05, Quantity = 25},
             };
 
+            double average = 0;
+            foreach (Product p in products)
+            {
+                average += p.Price;
+
+                if (p.Quantity < 10)
+                {
+                    Console.WriteLine(p.Id + '$' + p.Price);
+                }
+            }
+            Console.WriteLine("Average price is: " + Math.Round(average / products.Count, 2));
+
+            //B091NE9K4 
+            foreach (Product p in products)
+            {
+                if(p.Id == "B091NE9K4")
+                {
+                    p.Price = p.Price * 0.7;
+                }
+                Console.WriteLine(p.Id + " $" + p.Price);
+            }
+
             //Part 3 
-            int[] ordersIds = { 1, 2, 3, 4 };
+            int[] ordersIds = { 1, 2, 3, 4 , 5};
             double[] ordersValues = { 25.5, 92.5, 78.23, 12.95, 83.67 };
             string[] ordersCustomers = { "Tracy Erkut", "Arvin Aitken", "Ryan Mae", "Sherri Smith", "Adam Weller" };
+
+            List<Order> unsortedList = new List<Order>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                Order o = new Order();
+                o.id = ordersIds[i];
+                o.customer = ordersCustomers[i];
+                o.value = ordersValues[i];
+                unsortedList.Add(o);
+            }
+
+            sortedList(unsortedList);
+            return;
         }
     }
 
